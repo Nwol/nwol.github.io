@@ -6,7 +6,7 @@ export const profile = {
   phone: '(571) 594-4856',
   linkedIn: 'https://www.linkedin.com/in/nahom-woldeab-98a8b4120/',
   github: 'https://github.com/nwol',
-  portfolio: 'https://nwol.github.io/portfolio',
+  portfolio: 'https://nwol.github.io/',
   summary:
     'Software engineer with 6+ years of experience building distributed, high-performing web applications across frontend, backend, infrastructure, and database layers. Proven impact in React modernization, test automation, CI/CD optimization, accessibility, and reusable component systems at production scale.',
 };

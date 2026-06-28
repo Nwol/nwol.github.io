@@ -1,0 +1,32 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Pacifico&amp;display=swap');
+    </style>
+    <linearGradient id="letters" x1="18" y1="22" x2="112" y2="104" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F7FFF9"/>
+      <stop offset="0.35" stop-color="#D9F99D"/>
+      <stop offset="0.68" stop-color="#7BE6B8"/>
+      <stop offset="1" stop-color="#0A8F56"/>
+    </linearGradient>
+    <filter id="greenGlow" x="-30" y="-30" width="188" height="188" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#7BE6B8" flood-opacity="0.85"/>
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#03120D" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+
+  <text
+    x="63"
+    y="82"
+    text-anchor="middle"
+    font-family="Pacifico, Ubuntu, Arial, sans-serif"
+    font-size="64"
+    font-weight="400"
+    letter-spacing="-10"
+    fill="url(#letters)"
+    stroke="#062116"
+    stroke-width="1.4"
+    paint-order="stroke fill"
+    filter="url(#greenGlow)"
+  >NW</text>
+</svg>
