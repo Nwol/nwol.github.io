@@ -1,150 +1,94 @@
 import { type ChangeEvent, type FormEvent, useState } from 'react';
-import { Box, Button, Card, CardContent, Link, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Link, Stack, TextField, Typography, alpha } from '@mui/material';
 import { FaGithub, FaLinkedin, FaPhoneAlt } from 'react-icons/fa';
 import { MdEmail, MdLocationOn, MdSend } from 'react-icons/md';
+import PageHeader from '../components/PageHeader';
 import { profile } from '../data/portfolio';
 
 const contactOptions = [
-  {
-    label: 'Email',
-    value: profile.email,
-    href: `mailto:${profile.email}`,
-    icon: MdEmail,
-  },
-  {
-    label: 'Phone',
-    value: profile.phone,
-    href: `tel:${profile.phone.replaceAll(/[^\d+]/g, '')}`,
-    icon: FaPhoneAlt,
-  },
-  {
-    label: 'LinkedIn',
-    value: 'Connect with me',
-    href: profile.linkedIn,
-    icon: FaLinkedin,
-  },
-  {
-    label: 'GitHub',
-    value: 'View my projects',
-    href: profile.github,
-    icon: FaGithub,
-  },
+  { label: 'Email', value: profile.email, href: `mailto:${profile.email}`, icon: MdEmail },
+  { label: 'Phone', value: profile.phone, href: `tel:${profile.phone.replaceAll(/[^\d+]/g, '')}`, icon: FaPhoneAlt },
+  { label: 'LinkedIn', value: 'Connect with me', href: profile.linkedIn, icon: FaLinkedin },
+  { label: 'GitHub', value: 'View my profile', href: profile.github, icon: FaGithub },
 ];
 
 const Contact = () => {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  });
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
 
   const updateField = (field: keyof typeof form) => (event: ChangeEvent<HTMLInputElement>) => {
-    setForm((currentForm) => ({
-      ...currentForm,
-      [field]: event.target.value,
-    }));
+    setForm((currentForm) => ({ ...currentForm, [field]: event.target.value }));
   };
 
   const sendMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const subject = form.subject.trim() || 'Portfolio inquiry';
-    const body = [
-      `Name: ${form.name}`,
-      `Email: ${form.email}`,
-      '',
-      'Message:',
-      form.message,
-    ].join('\n');
-
+    const body = [`Name: ${form.name}`, `Email: ${form.email}`, '', 'Message:', form.message].join('\n');
     window.location.href = `mailto:${profile.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (
-    <Stack spacing={{ xs: 3, md: 5 }}>
-      <Box>
-        <Typography variant="overline" color="secondary" sx={{ fontWeight: 800 }}>
-          Contact
-        </Typography>
-        <Typography variant="h2" sx={{ fontSize: { xs: 34, md: 48 } }}>
-          Let&apos;s build something polished and useful.
-        </Typography>
-      </Box>
+    <Stack spacing={{ xs: 5, md: 7 }}>
+      <PageHeader
+        eyebrow="Contact"
+        title="Let’s talk about useful software and the teams that build it."
+        description="I’m open to software engineering conversations across frontend, backend, cloud, platform, and product-focused work."
+      />
 
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '0.88fr 1.12fr' },
-          gap: { xs: 2.5, md: 3 },
-          alignItems: 'start',
+          gridTemplateColumns: { xs: '1fr', lg: '0.8fr 1.2fr' },
+          gap: 2,
+          alignItems: 'stretch',
         }}
       >
-        <Card sx={{ height: '100%' }}>
-          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-            <Stack spacing={3}>
+        <Card component="section">
+          <CardContent sx={{ p: { xs: 3, md: 4 }, height: '100%' }}>
+            <Stack spacing={3} sx={{ height: '100%' }}>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 850 }}>
-                  Contact details
-                </Typography>
-                <Typography color="text.secondary" sx={{ mt: 1 }}>
-                  I&apos;m based in {profile.location} and open to software engineering conversations
-                  across frontend, backend, cloud, and product-focused work.
-                </Typography>
+                <Typography variant="h3" sx={{ fontSize: { xs: '1.75rem', md: '2.15rem' } }}>Contact details</Typography>
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', mt: 1 }}>
+                  <MdLocationOn size={20} />
+                  <Typography color="text.secondary">{profile.location}</Typography>
+                </Stack>
               </Box>
 
-              <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-                <Box component={MdLocationOn} sx={{ color: 'primary.main', fontSize: 24 }} />
-                <Typography color="text.secondary">{profile.location}</Typography>
-              </Stack>
-
-              <Stack spacing={1.5}>
+              <Stack divider={<Box sx={{ height: '1px', bgcolor: 'divider' }} />}>
                 {contactOptions.map((option) => {
                   const Icon = option.icon;
                   const isExternal = option.href.startsWith('http');
 
                   return (
-                    <Box
+                    <Link
                       key={option.label}
-                      sx={{
-                        p: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper',
-                      }}
+                      href={option.href}
+                      target={isExternal ? '_blank' : undefined}
+                      rel={isExternal ? 'noreferrer' : undefined}
+                      underline="none"
+                      sx={{ py: 2, borderRadius: 1, '&:hover': { color: 'primary.main' } }}
                     >
-                      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                      <Stack direction="row" spacing={1.75} sx={{ alignItems: 'center' }}>
                         <Box
                           sx={{
                             display: 'grid',
                             placeItems: 'center',
-                            width: 44,
-                            height: 44,
+                            width: 42,
+                            height: 42,
                             borderRadius: 2,
-                            backgroundColor: 'primary.main',
-                            color: 'primary.contrastText',
+                            color: 'primary.main',
+                            backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.12),
                             flexShrink: 0,
                           }}
                         >
-                          <Box component={Icon} sx={{ fontSize: 22 }} />
+                          <Icon size={20} />
                         </Box>
                         <Box sx={{ minWidth: 0 }}>
-                          <Typography variant="subtitle2" color="text.secondary">
-                            {option.label}
-                          </Typography>
-                          <Link
-                            href={option.href}
-                            target={isExternal ? '_blank' : undefined}
-                            rel={isExternal ? 'noreferrer' : undefined}
-                            underline="hover"
-                            sx={{ fontWeight: 900, overflowWrap: 'anywhere' }}
-                          >
-                            {option.value}
-                          </Link>
+                          <Typography variant="caption" color="text.secondary">{option.label}</Typography>
+                          <Typography sx={{ fontWeight: 800, overflowWrap: 'anywhere' }}>{option.value}</Typography>
                         </Box>
                       </Stack>
-                    </Box>
+                    </Link>
                   );
                 })}
               </Stack>
@@ -152,67 +96,24 @@ const Contact = () => {
           </CardContent>
         </Card>
 
-        <Card sx={{ height: '100%' }}>
+        <Card component="section">
           <CardContent sx={{ p: { xs: 3, md: 4 } }}>
             <Box component="form" onSubmit={sendMessage}>
               <Stack spacing={2.25}>
                 <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 850 }}>
-                    Send a message
-                  </Typography>
+                  <Typography variant="h3" sx={{ fontSize: { xs: '1.75rem', md: '2.15rem' } }}>Send a message</Typography>
                   <Typography color="text.secondary" sx={{ mt: 1 }}>
-                    Fill this out and your email app will open with the message addressed to me.
+                    Your email app will open with the completed message addressed to me.
                   </Typography>
                 </Box>
 
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-                    gap: 2,
-                  }}
-                >
-                  <TextField
-                    label="Name"
-                    value={form.name}
-                    onChange={updateField('name')}
-                    required
-                    fullWidth
-                  />
-                  <TextField
-                    label="Email"
-                    type="email"
-                    value={form.email}
-                    onChange={updateField('email')}
-                    required
-                    fullWidth
-                  />
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                  <TextField label="Name" value={form.name} onChange={updateField('name')} required fullWidth />
+                  <TextField label="Email" type="email" value={form.email} onChange={updateField('email')} required fullWidth />
                 </Box>
-
-                <TextField
-                  label="Subject"
-                  value={form.subject}
-                  onChange={updateField('subject')}
-                  required
-                  fullWidth
-                />
-                <TextField
-                  label="Message"
-                  value={form.message}
-                  onChange={updateField('message')}
-                  required
-                  multiline
-                  minRows={7}
-                  fullWidth
-                />
-
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  endIcon={<MdSend />}
-                  sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, px: 3 }}
-                >
+                <TextField label="Subject" value={form.subject} onChange={updateField('subject')} required fullWidth />
+                <TextField label="Message" value={form.message} onChange={updateField('message')} required multiline minRows={7} fullWidth />
+                <Button type="submit" variant="contained" size="large" endIcon={<MdSend />} sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, px: 3 }}>
                   Open email draft
                 </Button>
               </Stack>

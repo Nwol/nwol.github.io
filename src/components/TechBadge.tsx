@@ -75,6 +75,7 @@ const TechBadge = ({ name, size = 'medium' }: TechBadgeProps) => {
   return (
     <Chip
       size={size}
+      variant="outlined"
       icon={
         <Box
           component={Icon}
@@ -87,8 +88,14 @@ const TechBadge = ({ name, size = 'medium' }: TechBadgeProps) => {
       }
       label={name}
       sx={{
+        borderColor: 'divider',
+        backgroundColor: 'background.paper',
+        height: size === 'small' ? 28 : 34,
         '& .MuiChip-icon': {
           color: 'primary.main',
+        },
+        '& .MuiChip-label': {
+          px: size === 'small' ? 1 : 1.25,
         },
       }}
     />

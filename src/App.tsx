@@ -1,32 +1,70 @@
-import { type MouseEvent, useMemo, useState } from 'react';
-import { NavLink, Outlet } from 'react-router';
+import { type MouseEvent, useEffect, useMemo, useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router';
 import {
   AppBar,
   Box,
   Button,
   Container,
   CssBaseline,
+  Divider,
+  Drawer,
   GlobalStyles,
+  IconButton,
+  Link,
+  List,
+  ListItemButton,
+  ListItemText,
   Menu,
   MenuItem,
   Stack,
   ThemeProvider,
   Toolbar,
+  Tooltip,
   Typography,
   alpha,
 } from '@mui/material';
 import type { PaletteMode } from '@mui/material';
-import { MdDarkMode, MdDownload, MdKeyboardArrowDown, MdLightMode } from 'react-icons/md';
+import { FaGithub, FaLinkedin } from 'react-icons/fa';
+import {
+  MdClose,
+  MdDarkMode,
+  MdDownload,
+  MdKeyboardArrowDown,
+  MdLightMode,
+  MdMenu,
+} from 'react-icons/md';
 import { buildTheme, glassBackground, glassBorder, pageGradient } from './theme';
 import { navItems, profile, publicAsset, resume } from './data/portfolio';
 
-const brandFont = '"Ubuntu", Arial, sans-serif';
+const getInitialMode = (): PaletteMode => {
+  if (typeof window === 'undefined') return 'dark';
+
+  const savedMode = window.localStorage.getItem('portfolio-theme');
+  if (savedMode === 'light' || savedMode === 'dark') return savedMode;
+
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+};
 
 const App = () => {
-  const [mode, setMode] = useState<PaletteMode>('dark');
+  const [mode, setMode] = useState<PaletteMode>(getInitialMode);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [resumeMenuAnchor, setResumeMenuAnchor] = useState<HTMLElement | null>(null);
+  const location = useLocation();
   const theme = useMemo(() => buildTheme(mode), [mode]);
   const isResumeMenuOpen = Boolean(resumeMenuAnchor);
+
+  useEffect(() => {
+    window.localStorage.setItem('portfolio-theme', mode);
+    document.documentElement.style.colorScheme = mode;
+  }, [mode]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+
+    const activePage = navItems.find((item) => item.path === location.pathname)?.label;
+    const pageName = location.pathname === '/resume' ? 'Resume' : activePage;
+    document.title = pageName && pageName !== 'Home' ? `${pageName} | ${profile.name}` : `${profile.name} | Portfolio`;
+  }, [location.pathname]);
 
   const openResumeMenu = (event: MouseEvent<HTMLButtonElement>) => {
     setResumeMenuAnchor(event.currentTarget);
@@ -36,13 +74,33 @@ const App = () => {
     setResumeMenuAnchor(null);
   };
 
+  const toggleMode = () => {
+    setMode((currentMode) => (currentMode === 'dark' ? 'light' : 'dark'));
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <GlobalStyles
         styles={{
-          '#root': {
-            minHeight: '100vh',
+          '#root': { minHeight: '100vh' },
+          '.skip-link': {
+            position: 'fixed',
+            top: -80,
+            left: 16,
+            zIndex: 2000,
+            borderRadius: 8,
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+            fontWeight: 800,
+            padding: '10px 16px',
+            textDecoration: 'none',
+            transition: 'top 160ms ease',
+            '&:focus': { top: 16 },
+          },
+          '@keyframes page-in': {
+            from: { opacity: 0, transform: 'translateY(8px)' },
+            to: { opacity: 1, transform: 'translateY(0)' },
           },
         }}
       />
@@ -53,16 +111,20 @@ const App = () => {
           backgroundAttachment: 'fixed',
           color: 'text.primary',
           overflowX: 'hidden',
-          py: { xs: 2, md: 3 },
+          px: { xs: 1.25, sm: 2, md: 3 },
+          pt: { xs: 1.25, md: 2.5 },
         }}
       >
-        <Container maxWidth="xl">
+        <Link className="skip-link" href="#main-content">
+          Skip to content
+        </Link>
+
+        <Container maxWidth="xl" disableGutters>
           <AppBar
             position="sticky"
             elevation={0}
             sx={{
-              top: 16,
-              mx: 'auto',
+              top: { xs: 10, md: 16 },
               border: glassBorder(mode),
               borderRadius: 2,
               backgroundColor: glassBackground(mode),
@@ -73,11 +135,9 @@ const App = () => {
           >
             <Toolbar
               sx={{
-                minHeight: { xs: 84, md: 88 },
-                gap: { xs: 1.5, md: 2.5 },
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                py: 1.25,
+                minHeight: { xs: 70, md: 76 },
+                gap: { xs: 1, md: 2 },
+                px: { xs: 1.25, sm: 2, md: 2.5 },
               }}
             >
               <Stack
@@ -85,225 +145,267 @@ const App = () => {
                 to="/"
                 aria-label="Go to home page"
                 direction="row"
-                spacing={1.25}
+                spacing={1.1}
                 sx={{
                   alignItems: 'center',
                   color: 'inherit',
                   textDecoration: 'none',
                   borderRadius: 2,
-                  px: 0.75,
-                  py: 0.5,
+                  flexShrink: 0,
+                  p: 0.5,
                   '&:hover': {
-                    backgroundColor: mode === 'dark' ? alpha('#ffffff', 0.1) : alpha('#ffffff', 0.5),
+                    backgroundColor: mode === 'dark' ? alpha('#ffffff', 0.08) : alpha('#ffffff', 0.5),
                   },
                 }}
               >
                 <Box
                   component="img"
                   src={publicAsset('favicon.svg')}
-                  alt="Nahom Woldeab initials"
-                  sx={{
-                    width: { xs: 42, md: 48 },
-                    height: { xs: 42, md: 48 },
-                    filter: mode === 'dark' ? 'drop-shadow(0 8px 18px rgba(0, 0, 0, 0.28))' : 'none',
-                  }}
+                  alt=""
+                  sx={{ width: { xs: 40, md: 46 }, height: { xs: 40, md: 46 } }}
                 />
-                <Box>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      color: 'text.primary',
-                      fontFamily: brandFont,
-                      fontSize: { xs: '1.16rem', md: '1.42rem' },
-                      fontWeight: 700,
-                      letterSpacing: 0,
-                      lineHeight: 1.05,
-                    }}
-                  >
+                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  <Typography sx={{ fontSize: { sm: '1.05rem', md: '1.18rem' }, fontWeight: 800, lineHeight: 1.1 }}>
                     {profile.name}
                   </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: 'text.secondary',
-                      display: 'block',
-                      fontFamily: brandFont,
-                      fontSize: { xs: '0.78rem', md: '0.9rem' },
-                      fontWeight: 500,
-                      letterSpacing: 0,
-                      lineHeight: 1.1,
-                      mt: 0.35,
-                    }}
-                  >
+                  <Typography color="text.secondary" sx={{ fontSize: '0.78rem', fontWeight: 600, mt: 0.25 }}>
                     {profile.role}
                   </Typography>
                 </Box>
               </Stack>
 
-              <Box component="nav">
-                <Stack
-                  direction="row"
-                  spacing={0.75}
-                  useFlexGap
-                  sx={{ flexWrap: 'wrap', justifyContent: 'center' }}
-                >
-                  {navItems.map((item) => (
-                    <Button
-                      key={item.path}
-                      component={NavLink}
-                      to={item.path}
-                      size="medium"
-                      sx={{
+              <Stack
+                component="nav"
+                aria-label="Primary navigation"
+                direction="row"
+                spacing={0.25}
+                sx={{
+                  display: { xs: 'none', lg: 'flex' },
+                  flex: 1,
+                  justifyContent: 'center',
+                  minWidth: 0,
+                }}
+              >
+                {navItems.map((item) => (
+                  <Button
+                    key={item.path}
+                    component={NavLink}
+                    to={item.path}
+                    end={item.path === '/'}
+                    size="small"
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '0.91rem',
+                      px: 1.35,
+                      '&:hover': { color: 'text.primary' },
+                      '&.active': {
                         color: 'text.primary',
-                        fontSize: { xs: '0.88rem', md: '0.98rem' },
-                        minHeight: 42,
-                        px: { xs: 1.4, md: 2 },
-                        py: 0.9,
-                        '&.active': {
-                          backgroundColor:
-                            mode === 'dark' ? alpha('#ffffff', 0.16) : alpha('#ffffff', 0.62),
-                        },
-                      }}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </Stack>
-              </Box>
+                        backgroundColor: mode === 'dark' ? alpha('#ffffff', 0.11) : alpha('#ffffff', 0.7),
+                      },
+                    }}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Stack>
 
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <Button
-                  aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
-                  onClick={() => setMode((currentMode) => (currentMode === 'dark' ? 'light' : 'dark'))}
-                  sx={{
-                    border: glassBorder(mode),
-                    color: 'text.primary',
-                    minHeight: 42,
-                    minWidth: 86,
-                    px: 0.75,
-                    backgroundColor: mode === 'dark' ? alpha('#ffffff', 0.1) : alpha('#ffffff', 0.48),
-                    '&:hover': {
-                      backgroundColor: mode === 'dark' ? alpha('#ffffff', 0.16) : alpha('#ffffff', 0.68),
-                    },
-                  }}
-                >
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        display: 'grid',
-                        placeItems: 'center',
-                        width: 30,
-                        height: 30,
-                        borderRadius: 999,
-                        color: mode === 'light' ? '#7a5500' : 'text.secondary',
-                        backgroundColor: mode === 'light' ? alpha('#fff3bf', 0.95) : 'transparent',
-                      }}
-                    >
-                      <MdLightMode size={18} />
-                    </Box>
-                    <Box
-                      sx={{
-                        display: 'grid',
-                        placeItems: 'center',
-                        width: 30,
-                        height: 30,
-                        borderRadius: 999,
-                        color: mode === 'dark' ? '#d9f99d' : 'text.secondary',
-                        backgroundColor: mode === 'dark' ? alpha('#10231b', 0.8) : 'transparent',
-                      }}
-                    >
-                      <MdDarkMode size={18} />
-                    </Box>
-                  </Stack>
-                </Button>
+              <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', ml: 'auto' }}>
+                <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}>
+                  <IconButton
+                    onClick={toggleMode}
+                    aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+                    sx={{
+                      width: 42,
+                      height: 42,
+                      border: glassBorder(mode),
+                      color: mode === 'dark' ? '#d9f99d' : '#775500',
+                      backgroundColor: mode === 'dark' ? alpha('#ffffff', 0.08) : alpha('#fff8d6', 0.74),
+                    }}
+                  >
+                    {mode === 'dark' ? <MdLightMode size={21} /> : <MdDarkMode size={20} />}
+                  </IconButton>
+                </Tooltip>
 
                 <Stack
                   direction="row"
-                  spacing={0.25}
+                  spacing={0}
                   sx={{
+                    display: { xs: 'none', sm: 'flex' },
+                    border: glassBorder(mode),
                     borderRadius: 999,
                     overflow: 'hidden',
-                    backgroundColor: isResumeMenuOpen
-                      ? mode === 'dark'
-                        ? alpha('#ffffff', 0.12)
-                        : alpha('#ffffff', 0.54)
-                      : 'transparent',
                   }}
                 >
                   <Button
                     component={NavLink}
                     to="/resume"
-                    size="medium"
+                    size="small"
                     sx={{
                       color: 'text.primary',
-                      fontSize: { xs: '0.88rem', md: '0.98rem' },
-                      minHeight: 42,
-                      px: { xs: 1.4, md: 2 },
-                      py: 0.9,
+                      px: 1.6,
                       borderTopRightRadius: 0,
                       borderBottomRightRadius: 0,
-                      '&.active': {
-                        backgroundColor:
-                          mode === 'dark' ? alpha('#ffffff', 0.16) : alpha('#ffffff', 0.62),
-                      },
+                      '&.active': { backgroundColor: alpha(theme.palette.primary.main, 0.14) },
                     }}
                   >
                     Resume
                   </Button>
-                  <Button
+                  <IconButton
                     aria-controls={isResumeMenuOpen ? 'resume-download-menu' : undefined}
                     aria-expanded={isResumeMenuOpen ? 'true' : undefined}
                     aria-haspopup="menu"
                     aria-label="Resume download options"
                     onClick={openResumeMenu}
-                    size="medium"
-                    sx={{
-                      color: 'text.primary',
-                      minHeight: 42,
-                      minWidth: 42,
-                      px: 0.75,
-                      py: 0.9,
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                    }}
+                    size="small"
+                    sx={{ color: 'text.primary', width: 38, borderRadius: 0 }}
                   >
-                    <MdKeyboardArrowDown size={22} />
-                  </Button>
+                    <MdKeyboardArrowDown size={20} />
+                  </IconButton>
                 </Stack>
-                <Menu
-                  id="resume-download-menu"
-                  anchorEl={resumeMenuAnchor}
-                  open={isResumeMenuOpen}
-                  onClose={closeResumeMenu}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+
+                <IconButton
+                  aria-label="Open navigation"
+                  onClick={() => setMobileMenuOpen(true)}
+                  sx={{
+                    display: { xs: 'inline-flex', lg: 'none' },
+                    width: 42,
+                    height: 42,
+                    border: glassBorder(mode),
+                    color: 'text.primary',
+                  }}
                 >
-                  <MenuItem onClick={closeResumeMenu}>
-                    <Box
-                      component="a"
-                      href={resume.file}
-                      download={resume.downloadName}
-                      sx={{
-                        alignItems: 'center',
-                        color: 'inherit',
-                        display: 'flex',
-                        gap: 1,
-                        textDecoration: 'none',
-                        width: '100%',
-                      }}
-                    >
-                      <MdDownload size={20} />
-                      Download PDF
-                    </Box>
-                  </MenuItem>
-                </Menu>
+                  <MdMenu size={24} />
+                </IconButton>
               </Stack>
             </Toolbar>
           </AppBar>
         </Container>
 
-        <Container maxWidth="xl" sx={{ py: { xs: 4, md: 7 } }}>
-          <Outlet />
+        <Menu
+          id="resume-download-menu"
+          anchorEl={resumeMenuAnchor}
+          open={isResumeMenuOpen}
+          onClose={closeResumeMenu}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <MenuItem component="a" href={resume.file} download={resume.downloadName} onClick={closeResumeMenu}>
+            <MdDownload size={19} style={{ marginRight: 10 }} />
+            Download PDF
+          </MenuItem>
+        </Menu>
+
+        <Drawer
+          anchor="right"
+          open={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+          slotProps={{
+            paper: {
+              sx: {
+                width: 'min(88vw, 360px)',
+                p: 2,
+                backgroundColor: mode === 'dark' ? alpha('#07110e', 0.96) : alpha('#f7fcf8', 0.96),
+                backgroundImage: 'none',
+                backdropFilter: 'blur(28px)',
+              },
+            },
+          }}
+        >
+          <Stack spacing={2} sx={{ height: '100%' }}>
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Box component="img" src={publicAsset('favicon.svg')} alt="" sx={{ width: 42, height: 42 }} />
+                <Box>
+                  <Typography sx={{ fontWeight: 800 }}>{profile.name}</Typography>
+                  <Typography variant="caption" color="text.secondary">{profile.role}</Typography>
+                </Box>
+              </Stack>
+              <IconButton aria-label="Close navigation" onClick={() => setMobileMenuOpen(false)}>
+                <MdClose size={24} />
+              </IconButton>
+            </Stack>
+
+            <Divider />
+
+            <List component="nav" aria-label="Mobile navigation" disablePadding>
+              {navItems.map((item) => (
+                <ListItemButton
+                  key={item.path}
+                  component={NavLink}
+                  to={item.path}
+                  end={item.path === '/'}
+                  onClick={() => setMobileMenuOpen(false)}
+                  sx={{
+                    borderRadius: 2,
+                    mb: 0.5,
+                    '&.active': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.14),
+                      color: 'primary.main',
+                    },
+                  }}
+                >
+                  <ListItemText primary={item.label} slotProps={{ primary: { sx: { fontWeight: 750 } } }} />
+                </ListItemButton>
+              ))}
+              <ListItemButton
+                component={NavLink}
+                to="/resume"
+                onClick={() => setMobileMenuOpen(false)}
+                sx={{
+                  borderRadius: 2,
+                  '&.active': { backgroundColor: alpha(theme.palette.primary.main, 0.14), color: 'primary.main' },
+                }}
+              >
+                <ListItemText primary="Resume" slotProps={{ primary: { sx: { fontWeight: 750 } } }} />
+              </ListItemButton>
+            </List>
+
+            <Button component="a" href={resume.file} download={resume.downloadName} variant="contained" startIcon={<MdDownload />}>
+              Download resume
+            </Button>
+
+            <Stack direction="row" spacing={1} sx={{ mt: 'auto' }}>
+              <IconButton component="a" href={profile.github} target="_blank" rel="noreferrer" aria-label="GitHub">
+                <FaGithub size={21} />
+              </IconButton>
+              <IconButton component="a" href={profile.linkedIn} target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <FaLinkedin size={21} />
+              </IconButton>
+            </Stack>
+          </Stack>
+        </Drawer>
+
+        <Container id="main-content" component="main" maxWidth="xl" disableGutters sx={{ py: { xs: 5, md: 8 } }}>
+          <Box key={location.pathname} sx={{ animation: 'page-in 260ms ease both' }}>
+            <Outlet />
+          </Box>
+        </Container>
+
+        <Container component="footer" maxWidth="xl" disableGutters>
+          <Divider />
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{ alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', py: 3.5 }}
+          >
+            <Box>
+              <Typography sx={{ fontWeight: 800 }}>{profile.name}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Software engineering across product, platform, and delivery.
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                © {new Date().getFullYear()}
+              </Typography>
+              <IconButton component="a" href={profile.github} target="_blank" rel="noreferrer" aria-label="GitHub" size="small">
+                <FaGithub />
+              </IconButton>
+              <IconButton component="a" href={profile.linkedIn} target="_blank" rel="noreferrer" aria-label="LinkedIn" size="small">
+                <FaLinkedin />
+              </IconButton>
+            </Stack>
+          </Stack>
         </Container>
       </Box>
     </ThemeProvider>
